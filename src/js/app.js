@@ -1,118 +1,94 @@
-/* sweetScroll load */
 document.addEventListener("DOMContentLoaded", function () {
-  const sweetScroll = new SweetScroll({/* some options */});
-
-  /* particlesJS.load(@dom-id, @path-json, @callback (optional)); */
-  particlesJS('particles-js', {
-    "particles": {
-      "number": {
-        "value": 30,
-        "density": {
-          "enable": true,
-          "value_area": 800
-        }
-      },
-      "color": {
-        "value": "#ffffff"
-      },
-      "shape": {
-        "type": "polygon",
-        "stroke": {
-          "width": 0,
-          "color": "#000000"
-        },
-        "polygon": {
-          "nb_sides": 5
-        },
-        "image": {
-          "src": "img/github.svg",
-          "width": 100,
-          "height": 100
-        }
-      },
-      "opacity": {
-        "value": 0.5,
-        "random": false,
-        "anim": {
-          "enable": false,
-          "speed": 1,
-          "opacity_min": 0.1,
-          "sync": false
-        }
-      },
-      "size": {
-        "value": 3,
-        "random": true,
-        "anim": {
-          "enable": false,
-          "speed": 19.18081918081918,
-          "size_min": 0.1,
-          "sync": false
-        }
-      },
-      "line_linked": {
-        "enable": true,
-        "distance": 150,
-        "color": "#ffffff",
-        "opacity": 0.4,
-        "width": 1
-      },
-      "move": {
-        "enable": true,
-        "speed": 4,
-        "direction": "none",
-        "random": true,
-        "straight": false,
-        "out_mode": "out",
-        "bounce": false,
-        "attract": {
-          "enable": false,
-          "rotateX": 600,
-          "rotateY": 1200
-        }
-      },
-      nb: 80
-    },
-    "interactivity": {
-      "detect_on": "window",
-      "events": {
-        "onhover": {
-          "enable": false,
-          "mode": "grab"
-        },
-        "onclick": {
-          "enable": true,
-          "mode": "push"
-        },
-        "resize": true
-      },
-      "modes": {
-        "grab": {
-          "distance": 400,
-          "line_linked": {
-            "opacity": 1
-          }
-        },
-        "bubble": {
-          "distance": 400,
-          "size": 40,
-          "duration": 2,
-          "opacity": 8,
-          "speed": 3
-        },
-        "repulse": {
-          "distance": 200,
-          "duration": 0.4
-        },
-        "push": {
-          "particles_nb": 4
-        },
-        "remove": {
-          "particles_nb": 2
-        }
-      }
-    },
-    "retina_detect": true
-  });
-
+  const sweetScroll = new SweetScroll({});
 }, false);
+
+var lines = [];
+var linesCount = 5;
+var lastCreated = new Date();
+var colors = ["#0B5351", "#00A9A5", "#4E8098", "#90C2E7"];
+
+sketch = Sketch.create({
+  container: document.getElementById('header'),
+  retina: 'auto',
+});
+  
+sketch.setup = function() { 
+  spawn();
+  spawn();
+};
+
+sketch.update = function() {
+  if (lines.length != linesCount) {
+    if (new Date() - lastCreated > random(1500, 2000)) {
+      spawn();
+      lastCreated = new Date();
+    }
+  };
+  
+  lines.forEach(function(line, i) {
+    if (line.alive !== true) {
+      lines.splice(i, 1);
+    } else {
+      line.update();
+    }
+  });
+};
+
+sketch.draw = function() {
+  lines.forEach(function(line) {
+    if (line.alive) {
+      line.draw(sketch);
+    }
+  });
+};
+  
+spawn = function() {
+  lines.push(new Line(
+    sketch.width * random(0, 1),
+    random(50, 100),
+    random(-20, 20)
+  ));
+};
+
+Line = function(x, width, velocity, opacity) {
+  this.init(x, width, velocity, opacity);
+};
+
+Line.prototype = {
+  init: function(x, width, velocity) {
+    this.alive = true;
+    this.x = x || 0.0;
+    this.width = width || 1.0;
+    this.opacity = 0;
+    this.velocity = Math.floor(velocity) || 1.0;
+    this.vx = 0.1;
+    this.vy = 0.1;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.xModif = random(-100, 100);
+    this.widthModif = random(0.1, 0.4);
+    this.t = 0;
+    this.opacityFadeout = random(200, 300);
+  },
+  
+  update: function() {
+    this.x += this.velocity/50;
+    this.width += this.widthModif;
+    this.opacity = Math.sin(this.t/this.opacityFadeout)
+    if (this.opacity < 0) {
+      this.alive = false;
+    }
+    this.t += 1;
+  },
+  
+  draw: function(context) {
+    context.globalAlpha = this.opacity/2;
+    context.beginPath();
+    context.strokeStyle = this.color;
+    context.lineWidth = this.width;
+    context.moveTo(this.x, -50);
+    context.lineTo(this.x + this.xModif, window.innerHeight + 200);
+    context.stroke();
+    context.closePath();
+  }
+}
+
